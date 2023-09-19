@@ -1,0 +1,237 @@
+﻿@model CountryMasterForm.Models.Category
+@{
+    ViewBag.Title = "Category";
+}
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    @* Buttno for New *@
+
+    <input type="button" value="New" id="btnNew" class="btn btn-info" style="margin-bottom:20px;margin-left:90%;margin-top:1%" />
+    @using (Html.BeginForm())
+    {
+        @* Grid Table Heading *@
+
+        <div class="card">
+            <div class="card-body">
+                <div class="container-fluid">
+                    <div class="table-responsive">
+                        <div class="col-md-12">
+                            <table id="grdWorkFlowView" cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; width: 100% !important" class="table dispaly">
+                                <thead>
+                                    <tr style="text-align: center;">
+                                        <th style="text-align:center">Category Id</th>
+                                        <th style="text-align: center">Category Name</th>
+                                        <th style="text-align: center">Description</th>
+                                        <th style="text-align: center">View</th>
+                                        <th style="text-align: center">Edit</th>
+                                        <th style="text-align:center">Active</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Modal PopBox *@
+        <div id="modalbox" class="modal fade" name="New">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" asp-controller="Category" asp-action="Category">
+                        <div class="modal-header">
+                            <h4 class="modal-title"> Category </h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        </div>
+                        <div class="modal-body">
+                            @Html.HiddenFor(m => m.categoryid, new { @class = "form-control", @id = "txtid" })
+                            <div class="form-group">
+                                <label>Category Name<span style="color:red">*</span></label>
+                                @Html.TextBoxFor(model => model.categoryname, new { @class = "form-control" ,id="txtname", oninput="this.value = this.value.replace(/[^a-zA-Z ]/g, '');"})
+                            </div>
+                            <div class="form-group">
+                                <label>Description<span style="color:red">*</span></label>
+                                @Html.TextBoxFor(model => model.description, new { @class = "form-control", id = "txtdescription" })
+                            </div>
+                            <div class="modal-footer d-flex justify-content-center">
+                                <input type="Submit" id="btnSave" class="btn btn-success" value="Save" />
+                                <input type="Submit" id="btnUpdate" class="btn btn-success" value="Update" />
+                                <input type="reset" id="btnreset" class="btn btn-danger" data-dismiss="modal" value="Reset" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+</html>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //click on New btn shows Modal Pop
+        $("#btnNew").click(function () {
+            $("#modalbox").modal("show");
+            $('#txtname').val("");
+            $('#txtdescription').val("");
+            $("#txtname").prop("readonly", false);
+            $("#txtdescription").prop("readonly", false);
+            $("#btnNew").show();
+            $("#btnUpdate").hide();
+            $("#btnSave").show();
+            $("#btnreset").show();
+        });
+
+        //Closing Btn
+        $(".close").click(function () {
+            $("#modalbox").modal("hide");
+        });
+
+        //Validation
+        $("#btnSave").click(function () {
+            var categoryId = $("#txtid").val();
+            var categoryName = $("#txtname").val();
+            var description = $("#txtdescription").val();
+            if (categoryName == "") {
+                swal("Please Enter Category Name");
+                $('#txtname').focus();
+                return false;
+            }
+            else if (!categoryName.match(/^[a-zA-Z]+( [a-zA-Z]+)?$/)) {
+                swal("Please Enter Category Name in Aplhabet");
+                $('#txtname').focus();
+                return false;
+            }
+            if (description == "") {
+                swal("Please Enter Description ");
+                $('#txtdescription').focus();
+                return false;
+            }
+            else if (!roleDesc.match(/^[a-zA-Z]+( [a-zA-Z]+)?$/)) {
+                swal("Description should be Proper Way");
+                $('#txtdescription').focus();
+                return false;
+            }
+        });
+
+        //Loading Data to DataTable
+        $('#grdWorkFlowView').DataTable({
+            "ajax": {
+                "url": "/Category/GetCategoryDataTable",
+                "type": "POST",
+                "datatype": "json"
+            },
+            "columns": [
+                { "data": "categoryid", "autoWidth": true, "visible": false },
+                { "data": "categoryname", "autoWidth": true, "className": "text-center" },
+                { "data": "description", "autoWidth": true, "className": "text-center" },
+                {
+                    "data": "categoryid","autoWidth": true,"sortable": false,"render": function (data, type, row) {
+                        return '<a id="viewBtn" style="color: red; padding:40px;" href="javascript:ViewCategoryDetails(\'' + row.categoryid + '\',\'' + row.categoryname + '\',\'' + row.description + '\')" title="View"><i class="fa fa-eye" style="font-size:24px;"></i></a>' ;
+                            //'<a id="EditBtn" style="color: blue;" href="javascript:EditCategoryDetails(\'' + row.categoryid + '\',\'' + row.categoryname + '\',\'' + row.description + '\')" title="Edit"><i class="fa fa-edit" style="font-size:24px"></i></a>';
+                    },
+                    "className": "text-center"
+                 
+                },
+                {
+                    "data": "categoryid", "autoWidth": true, "sortable": false, "render": function (data, type, row) {
+                       // return '<a id="viewBtn" style="color: red; padding:40px;" href="javascript:ViewCategoryDetails(\'' + row.categoryid + '\',\'' + row.categoryname + '\',\'' + row.description + '\')" title="View"><i class="fa fa-eye" style="font-size:24px;"></i></a>';
+                       return '<a id="EditBtn" style="color: blue;" href="javascript:EditCategoryDetails(\'' + row.categoryid + '\',\'' + row.categoryname + '\',\'' + row.description + '\')" title="Edit"><i class="fa fa-edit" style="font-size:24px"></i></a>';
+                    },
+                    "className": "text-center"
+                },
+                {
+                    "data": "isActive", "autoWidth": true, "class": "dt-center", "sortable": false, "render": function (data, type, row) {
+                        if (data === 1) {
+                            return '<a style="color: blue;" href="javascript:activeDeactive(\'' + row.categoryid + '\',\'A\' )" title="Active"><i class="fa fa-circle"></a>';
+                        }
+                        else {
+                            return '<a style="color: red;"href="javascript:activeDeactive(\'' + row.categoryid + '\',\'D\' )" title="InActive"><i class="fa fa-circle"></a>';
+                        }
+                    }
+                },
+                       
+            ],
+        });
+    });
+
+    // click on viewBtn shows Modal POP
+    function ViewCategoryDetails(categoryid, categoryname, description) {
+        var categoryid = categoryid;
+        var categoryname = categoryname;
+        var description = description;
+        $("#modalbox").modal("show");
+        $("#txtid").val(categoryid);
+        $("#txtname").val(categoryname);
+        $("#txtdescription").val(description);
+        $("#txtdescription").prop("readonly", true);
+        $("#txtname").prop("readonly", true);
+        $("#btnUpdate").hide();
+        $("#btnSave").hide();
+        $("#btnreset").hide();
+    }
+
+    // click on EditBtn shows Modal POP
+    function EditCategoryDetails(categoryid, categoryname, description) {
+        var categoryid = categoryid;
+        var categoryname = categoryname;
+        var description = description;
+        $("#modalbox").modal("show");
+        $("#txtid").val(categoryid);
+        $("#txtname").val(categoryname);
+        $("#txtdescription").val(description);
+        $("#txtdescription").prop("readonly", false);
+        $("#txtname").prop("readonly", false);
+        $("#btnSave").hide();
+        $("#btnUpdate").show();
+    }
+</script>
+
+@* Response Code Validation *@
+@if (Model.responsecode == 1)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            title: "Data Inserted Successfully",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
+else if (Model.responsecode == 2)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            title: "Data Updated Successfully",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
+else if (Model.responsecode == 3)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            title: "Category Name already exist",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
+else if (Model.responsecode == -1)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            title: "Something Went Wrong..!",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
